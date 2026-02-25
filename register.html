@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>EventFlow | Cadastro</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="min-h-screen flex items-center justify-center bg-gray-100">
+
+<form id="registerForm" class="bg-white p-8 rounded-xl shadow-md w-full max-w-sm">
+  <h1 class="text-2xl font-bold text-center mb-6 text-indigo-600">
+    Criar Conta
+  </h1>
+
+  <input id="name" type="text" placeholder="Nome"
+    class="w-full mb-4 px-3 py-2 border rounded" required>
+
+  <input id="email" type="email" placeholder="Email"
+    class="w-full mb-4 px-3 py-2 border rounded" required>
+
+  <input id="password" type="password" placeholder="Senha"
+    class="w-full mb-6 px-3 py-2 border rounded" required>
+
+  <button class="w-full bg-indigo-600 text-white py-2 rounded">
+    Cadastrar
+  </button>
+
+  <p class="text-sm text-center mt-4">
+    Já tem conta?
+    <a href="index.html" class="text-indigo-600">Login</a>
+  </p>
+</form>
+
+<script type="module" src="js/controllers/authController.js"></script>
+</body>
+</html>

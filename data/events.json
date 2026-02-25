@@ -1,0 +1,23 @@
+[
+  {
+    "id": 1,
+    "title": "Workshop de JavaScript",
+    "date": "10/04/2026",
+    "location": "Online",
+    "description": "Aprenda JavaScript moderno do zero ao avançado."
+  },
+  {
+    "id": 2,
+    "title": "Meetup Front-End",
+    "date": "02/05/2026",
+    "location": "São Paulo",
+    "description": "Encontro de desenvolvedores front-end."
+  },
+  {
+    "id": 3,
+    "title": "Hackathon Web",
+    "date": "20/06/2026",
+    "location": "Presencial",
+    "description": "Desafio prático de desenvolvimento web."
+  }
+]

@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>EventFlow | Eventos</title>
+
+  <!-- CSS das estrelas -->
+  <link rel="stylesheet" href="css/stars.css">
+
+  <!-- Tailwind via CDN (ok para projeto acadêmico) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="min-h-screen relative text-white">
+
+  <!-- FUNDO DE ESTRELAS -->
+ <div class="ocean">
+  <div class="wave"></div>
+  <div class="wave"></div>
+</div>
+
+  <!-- HEADER -->
+  <header class="relative z-10 bg-indigo-600 text-white p-4 flex justify-between items-center">
+    <h1 class="text-xl font-bold">EventFlow</h1>
+    <button
+      id="logoutBtn"
+      class="bg-white text-indigo-600 px-4 py-1 rounded hover:bg-gray-100"
+    >
+      Logout
+    </button>
+  </header>
+
+  <!-- CONTEÚDO -->
+  <main class="relative z-10 p-6 max-w-7xl mx-auto">
+
+    <button
+      id="addEventBtn"
+      class="mb-6 bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 cursor-pointer"
+    >
+      + Criar Evento
+    </button>
+
+   <h2 class="text-2xl font-semibold mb-6 text-indigo-900">
+  ✨ Próximos Eventos
+</h2>
+
+    <div
+      id="eventsContainer"
+      class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 cursor-pointer"
+    ></div>
+
+  </main>
+
+  <!-- SCRIPTS -->
+  <script src="js/guard.js"></script>
+  <script type="module" src="js/controllers/eventController.js"></script>
+
+</body>
+</html>
