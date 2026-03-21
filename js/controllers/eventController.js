@@ -352,3 +352,24 @@ aboutBtn.onclick = () => {
 closeAbout.onclick = () => {
   aboutModal.classList.add("hidden");
 };
+
+bannerInput.addEventListener("input", () => {
+  const url = bannerInput.value.trim();
+
+  // limpa sempre primeiro
+  bannerPreview.classList.add("hidden");
+  bannerPreview.src = "";
+
+  if (!url) return;
+
+  bannerPreview.src = url;
+
+  bannerPreview.onload = () => {
+    bannerPreview.classList.remove("hidden");
+  };
+
+  bannerPreview.onerror = () => {
+    bannerPreview.classList.add("hidden");
+    console.log("Erro ao carregar imagem");
+  };
+});

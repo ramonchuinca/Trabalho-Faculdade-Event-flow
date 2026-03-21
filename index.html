@@ -2,37 +2,68 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>EventFlow | Login</title>
-  <link rel="stylesheet" href="css/home.css">
+
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
-<body class="min-h-screen flex items-center justify-center bg-gray-100">
+<body class="min-h-screen flex">
 
-    <div class="ocean">
-  <div class="wave"></div>
-  <div class="wave"></div>
-</div>
+  <!-- LADO ESQUERDO (BRANDING) -->
+  <div class="hidden md:flex w-1/2 bg-indigo-600 text-white flex-col justify-center items-center p-10">
+    <h1 class="text-4xl font-bold mb-4">EventFlow 🚀</h1>
+    <p class="text-lg text-center max-w-md">
+      Gerencie seus eventos com facilidade, visualize no mapa e organize tudo em um só lugar.
+    </p>
+  </div>
 
-<form id="loginForm" class="bg-white p-8 rounded-xl shadow-md w-full max-w-sm">
-  <h1 class="text-2xl font-bold text-center mb-6 text-indigo-600">EventFlow</h1>
+  <!-- LADO DIREITO (FORM) -->
+  <div class="w-full md:w-1/2 flex items-center justify-center bg-gray-100">
 
-  <input id="email" type="email" placeholder="Email"
-    class="w-full mb-4 px-3 py-2 border rounded" required>
+    <form id="loginForm"
+      class="bg-white p-6 md:p-8 rounded-2xl shadow-lg w-[90%] max-w-md">
 
-  <input id="password" type="password" placeholder="Senha"
-    class="w-full mb-6 px-3 py-2 border rounded" required>
+      <h2 class="text-2xl font-bold text-center mb-6 text-indigo-600">
+        Entrar
+      </h2>
 
-  <button class="w-full bg-indigo-600 text-white py-2 rounded">
-    Entrar
-  </button>
+      <!-- EMAIL -->
+      <input
+        id="email"
+        type="email"
+        placeholder="Email"
+        class="w-full mb-4 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+        required
+      >
 
-  <p class="text-sm text-center mt-4">
-    Não tem conta?
-    <a href="register.html" class="text-indigo-600">Cadastre-se</a>
-  </p>
-</form>
+      <!-- SENHA -->
+      <input
+        id="password"
+        type="password"
+        placeholder="Senha"
+        class="w-full mb-6 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+        required
+      >
 
-<script type="module" src="js/controllers/authController.js"></script>
+      <!-- BOTÃO -->
+      <button
+        class="w-full bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700 transition">
+        Entrar
+      </button>
+
+      <!-- LINK -->
+      <p class="text-sm text-center mt-4">
+        Não tem conta?
+        <a href="register.html" class="text-indigo-600 font-semibold hover:underline">
+          Cadastre-se
+        </a>
+      </p>
+
+    </form>
+
+  </div>
+
+  <script type="module" src="js/controllers/authController.js"></script>
 </body>
 </html>
