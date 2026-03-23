@@ -1,56 +1,180 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="pt-BR">
-  <head>
-    <meta charset="UTF-8" />
-    <title>EventFlow | Eventos</title>
+<head>
+  <meta charset="UTF-8">
+  <title>EventFlow | Eventos</title>
 
-  <!-- CSS das estrelas -->
   <link rel="stylesheet" href="css/stars.css">
 
-  <!-- Tailwind via CDN (ok para projeto acadêmico) -->
+  <!-- LEAFLET -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  
+
+
+  <!-- TAILWIND -->
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
 <body class="min-h-screen relative text-white">
 
-  <!-- FUNDO DE ESTRELAS -->
- <div>
-     <div class="wave"></div>
-     <div class="wave"></div>
-     <div class="wave"></div>
+  <!-- FUNDO -->
+  <div>
+    <div class="wave"></div>
+    <div class="wave"></div>
+    <div class="wave"></div>
   </div>
 
   <!-- HEADER -->
-  <header class="relative z-10 bg-indigo-600 text-white p-4 flex justify-between items-center">
+  <header class="relative z-10 bg-indigo-600 p-4 flex justify-between items-center">
     <h1 class="text-xl font-bold">EventFlow</h1>
-    <button
-      id="logoutBtn"
-      class="bg-white text-indigo-600 px-4 py-1 rounded hover:bg-gray-100"
-    >
-      Logout
-    </button>
+
+    <div class="flex gap-2">
+      <button id="aboutBtn"
+        class="bg-yellow-400 text-black px-4 py-1 rounded font-semibold hover:bg-yellow-300 transition cursor-pointer">
+        Sobre
+      </button>
+
+      <button id="logoutBtn"
+        class="bg-white text-indigo-600 px-4 py-1 rounded hover:bg-gray-100 transition cursor-pointer">
+        Logout
+      </button>
+    </div>
   </header>
 
-  <!-- CONTEÚDO -->
+  <!-- MAIN -->
   <main class="relative z-10 p-6 max-w-7xl mx-auto">
 
-    <button
-      id="addEventBtn"
-      class="mb-6 bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 cursor-pointer"
-    >
+    <!-- BOTÃO -->
+    <button id="addEventBtn"
+      class="mb-6 bg-indigo-600 px-4 py-2 rounded hover:bg-indigo-700 transition cursor-pointer">
       + Criar Evento
     </button>
 
-   <h2 class="text-2xl font-semibold mb-6 text-indigo-900">
-  ✨ Próximos Eventos
-</h2>
+    <!-- BUSCA + FILTRO -->
+    <div class="mb-4 flex flex-col md:flex-row gap-3">
+      
+      <input id="searchInput"
+        placeholder="Buscar evento..."
+        class="p-2 rounded text-black w-full"
+      />
 
-    <div
-      id="eventsContainer"
-      class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 cursor-pointer"
-    ></div>
+      <select id="filterCategory"
+        class="p-2 rounded text-black">
+        <option value="all">Todas</option>
+        <option value="Festa">Festa</option>
+        <option value="Show">Show</option>
+        <option value="Esportivo">Esportivo</option>
+        <option value="Tecnologia">Tecnologia</option>
+      </select>
+
+    </div>
+
+    <h2 class="text-2xl font-semibold mb-6 text-indigo-900">
+      ✨ Próximos Eventos
+    </h2>
+
+    <!-- LOADING -->
+    <div id="loading" class="text-center hidden mb-4">
+      <p class="text-white">Carregando eventos...</p>
+    </div>
+
+    <!-- EVENTOS -->
+    <div id="eventsContainer"
+      class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    </div>
 
   </main>
+
+  <!-- MODAL EVENTO -->
+  <div id="eventModal"
+    class="fixed inset-0 bg-black/50 hidden flex items-center justify-center z-50 overflow-y-auto">
+
+    <div class="bg-white text-black p-6 rounded-lg w-full max-w-md">
+
+      <h2 class="text-xl font-bold mb-4">Evento</h2>
+
+      <input id="title" placeholder="Título" class="w-full mb-2 p-2 border rounded">
+      <input id="date" type="date" class="w-full mb-2 p-2 border rounded">
+      <input id="location" placeholder="Local" class="w-full mb-2 p-2 border rounded">
+      <input id="category" placeholder="Categoria" class="w-full mb-2 p-2 border rounded">
+     <input id="banner" placeholder="URL do Banner" class="w-full mb-2 p-2 border rounded">
+
+<img id="bannerPreview"
+     class="w-full h-32 object-cover rounded mb-2 hidden"
+     alt="Preview do banner">
+      <input id="doc" placeholder="Link do Documento" class="w-full mb-2 p-2 border rounded">
+
+      <textarea id="description" placeholder="Descrição"
+        class="w-full mb-2 p-2 border rounded"></textarea>
+
+      <div id="map" class="h-40 mb-3 rounded"></div>
+
+      <div class="flex justify-end gap-2">
+        <button id="closeModal"
+          class="px-4 py-2 bg-gray-400 text-white rounded hover:bg-gray-500 transition cursor-pointer">
+          Cancelar
+        </button>
+        <button id="saveEvent"
+          class="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 transition cursor-pointer">
+          Salvar
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- MODAL SOBRE -->
+  <div id="aboutModal"
+    class="fixed inset-0 bg-black/60 hidden flex items-center justify-center z-50">
+
+    <div class="bg-white text-black p-6 rounded-lg w-full max-w-3xl max-h-[85vh] overflow-y-auto shadow-2xl">
+
+      <h2 class="text-3xl font-bold mb-4 text-indigo-600">
+        🚀 EventFlow
+      </h2>
+
+      <p class="mb-3">
+        Sistema web para gerenciamento de eventos, permitindo visualizar, filtrar e cadastrar eventos com localização no mapa.
+      </p>
+
+      <hr class="my-4">
+
+      <h3 class="font-bold text-lg">📌 Sobre o projeto</h3>
+      <p class="text-sm mt-2">
+        Aplicação front-end que simula uma plataforma de eventos.
+      </p>
+
+      <h3 class="font-bold text-lg mt-4">✨ Funcionalidades</h3>
+      <ul class="list-disc ml-5 text-sm mt-2">
+        <li>Listagem de eventos</li>
+        <li>Busca por nome</li>
+        <li>Filtro por categoria</li>
+        <li>Cadastro e exclusão</li>
+        <li>Mapa interativo</li>
+      </ul>
+
+      <h3 class="font-bold text-lg mt-4">🚀 Melhorias futuras</h3>
+      <ul class="list-disc ml-5 text-sm mt-2">
+        <li>Edição de eventos</li>
+        <li>Backend real</li>
+        <li>Upload de imagens</li>
+      </ul>
+
+      <div class="flex justify-end mt-6">
+        <button id="closeAbout"
+          class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 transition cursor-pointer">
+          Fechar
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- TOAST -->
+  <div id="toast"
+    class="fixed bottom-5 right-5 bg-green-600 text-white px-4 py-2 rounded shadow-lg hidden">
+  </div>
 
   <!-- SCRIPTS -->
   <script src="js/guard.js"></script>
