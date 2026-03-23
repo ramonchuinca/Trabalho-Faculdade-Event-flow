@@ -2,121 +2,415 @@ import { getEvents } from "../services/api.js";
 import {
   getUserEvents,
   saveUserEvent,
-  deleteUserEvent,
-  updateUserEvent
+  deleteUserEvent
 } from "../models/eventModel.js";
 
 const container = document.getElementById("eventsContainer");
 const addEventBtn = document.getElementById("addEventBtn");
 const logoutBtn = document.getElementById("logoutBtn");
+const filter = document.getElementById("filterCategory");
+const searchInput = document.getElementById("searchInput");
+const loading = document.getElementById("loading");
+
+// MODAL
+const modal = document.getElementById("eventModal");
+const closeBtn = document.getElementById("closeModal");
+const saveBtn = document.getElementById("saveEvent");
+
+// TOAST
+const toast = document.getElementById("toast");
+const aboutBtn = document.getElementById("aboutBtn");
+const aboutModal = document.getElementById("aboutModal");
+const closeAbout = document.getElementById("closeAbout");
+const bannerInput = document.getElementById("banner");
+const bannerPreview = document.getElementById("bannerPreview");
+
+
+
+bannerInput.addEventListener("input", () => {
+  const url = bannerInput.value.trim();
+
+  // limpa sempre primeiro
+  bannerPreview.classList.add("hidden");
+  bannerPreview.src = "";
+
+  if (!url) return;
+
+  bannerPreview.src = url;
+
+  bannerPreview.onload = () => {
+    bannerPreview.classList.remove("hidden");
+  };
+
+  bannerPreview.onerror = () => {
+    bannerPreview.classList.add("hidden");
+    // console.log("Erro ao carregar imagem");
+  };
+});
+
+
+let map = null;
+let marker = null;
+let selectedLat = -23.5505;
+let selectedLng = -46.6333;
 
 let apiEventsLength = 0;
+let editingIndex = null;
+
+// ================== GEO ==================
+async function getCoordinates(place) {
+  try {
+    const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(place)}&limit=1`;
+    const res = await fetch(url);
+    const data = await res.json();
+
+    if (data.length > 0) {
+      return {
+        lat: parseFloat(data[0].lat),
+        lng: parseFloat(data[0].lon)
+      };
+    }
+  } catch (err) {
+    console.error("Erro ao buscar localização", err);
+  }
+  return null;
+}
+
+// ================== TOAST ==================
+function showToast(msg) {
+  toast.textContent = msg;
+  toast.classList.remove("hidden");
+
+  setTimeout(() => {
+    toast.classList.add("hidden");
+  }, 2500);
+}
 
 // ================== RENDER ==================
 function renderEvents(events) {
   container.innerHTML = "";
 
+  if (events.length === 0) {
+    container.innerHTML = `
+      <p class="text-white col-span-3 text-center">
+        Nenhum evento encontrado 😢
+      </p>
+    `;
+    return;
+  }
+
+  const categoryColors = {
+    Festa: "bg-pink-500",
+    Show: "bg-purple-500",
+    Esportivo: "bg-green-500",
+    Tecnologia: "bg-blue-500"
+  };
+
   events.forEach((event, index) => {
     const card = document.createElement("div");
+    const color = categoryColors[event.category] || "bg-gray-500";
 
     card.className =
-      "bg-white rounded-xl shadow p-5 hover:shadow-lg transition";
+      "bg-white/90 text-black rounded-xl shadow p-5 hover:shadow-lg transition transform hover:scale-105";
 
     card.innerHTML = `
-      <h3 class="text-lg font-bold text-indigo-600 mb-2">${event.title}</h3>
-      <p class="text-sm text-gray-600 mb-1">📅 ${event.date}</p>
-      <p class="text-sm text-gray-600 mb-1">📍 ${event.location}</p>
-      <p class="text-gray-700 text-sm mb-3">${event.description}</p>
+      ${event.banner ? `<img src="${event.banner}" class="w-full h-40 object-cover rounded mb-3">` : ""}
 
-      ${
-        event.fromUser
-          ? `
-          <div class="flex gap-4 mt-3">
-            <button
-              data-index="${index}"
-              class="editBtn text-sm text-blue-500 hover:underline">
-              Editar
-            </button>
-            <button
-              data-index="${index}"
-              class="deleteBtn text-sm text-red-500 hover:underline">
-              Excluir
-            </button>
-          </div>
-          `
-          : ""
-      }
+      <h3 class="font-bold text-indigo-600 text-lg">${event.title}</h3>
+
+      <span class="text-xs ${color} text-white px-2 py-1 rounded block w-fit mt-2">
+        ${event.category || "Sem categoria"}
+      </span>
+
+      <p class="mt-2">📅 ${event.date}</p>
+      <p>📍 ${event.location}</p>
+
+      <p class="text-sm mt-2">${event.description || ""}</p>
+
+      ${event.lat && event.lng ? `
+        <button 
+          class="viewMapBtn text-indigo-600 text-sm mt-2 underline"
+          data-lat="${event.lat}"
+          data-lng="${event.lng}">
+          📍 Ver no mapa
+        </button>
+      ` : ""}
+
+      ${event.doc ? `
+        <a href="${event.doc}" target="_blank"
+          class="text-blue-500 underline text-sm block mt-2">
+          📄 Ver documento
+        </a>
+      ` : ""}
+
+      ${event.fromUser ? `
+        <div class="flex gap-2 mt-3">
+          <button data-index="${index}" class="editBtn text-blue-500">Editar</button>
+          <button data-index="${index}" class="deleteBtn text-red-500">Excluir</button>
+        </div>
+      ` : ""}
     `;
 
     container.appendChild(card);
   });
 
-  // ========= EXCLUIR =========
+  // DELETE
   document.querySelectorAll(".deleteBtn").forEach(btn => {
-    btn.addEventListener("click", (e) => {
+    btn.onclick = (e) => {
       const index = e.target.dataset.index - apiEventsLength;
       deleteUserEvent(index);
-      loadEvents();
-    });
+      showToast("Evento excluído 🗑️");
+      loadEvents(filter.value, searchInput.value);
+    };
   });
 
-  // ========= EDITAR =========
+  // EDIT
   document.querySelectorAll(".editBtn").forEach(btn => {
-    btn.addEventListener("click", (e) => {
+    btn.onclick = (e) => {
       const index = e.target.dataset.index - apiEventsLength;
-      const events = getUserEvents();
-      const event = events[index];
+      const userEvents = getUserEvents();
+      const event = userEvents[index];
 
-      const title = prompt("Título:", event.title);
-      const date = prompt("Data:", event.date);
-      const location = prompt("Local:", event.location);
-      const description = prompt("Descrição:", event.description);
+      editingIndex = index;
 
-      if (!title || !date || !location || !description) {
-        alert("Todos os campos são obrigatórios");
+      document.getElementById("title").value = event.title;
+      document.getElementById("date").value = event.date;
+      document.getElementById("location").value = event.location;
+      document.getElementById("description").value = event.description;
+      document.getElementById("category").value = event.category;
+      document.getElementById("banner").value = event.banner;
+      document.getElementById("doc").value = event.doc;
+
+      selectedLat = event.lat;
+      selectedLng = event.lng;
+
+      modal.classList.remove("hidden");
+
+      setTimeout(() => {
+        if (map) map.remove();
+
+        map = L.map("map").setView([selectedLat, selectedLng], 13);
+
+        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png")
+          .addTo(map);
+
+        marker = L.marker([selectedLat, selectedLng]).addTo(map);
+
+        map.on("click", (e) => {
+          selectedLat = e.latlng.lat;
+          selectedLng = e.latlng.lng;
+          marker.setLatLng(e.latlng);
+        });
+      }, 100);
+    };
+  });
+
+  // ✅ VER NO MAPA (AGORA FUNCIONA 100%)
+  document.querySelectorAll(".viewMapBtn").forEach(btn => {
+    btn.onclick = () => {
+      const lat = parseFloat(btn.dataset.lat);
+      const lng = parseFloat(btn.dataset.lng);
+
+      if (isNaN(lat) || isNaN(lng)) {
+        showToast("Localização não disponível 😢");
         return;
       }
 
-      updateUserEvent(index, { title, date, location, description });
-      loadEvents();
-    });
+      modal.classList.remove("hidden");
+
+      setTimeout(() => {
+        if (map) map.remove();
+
+        map = L.map("map").setView([lat, lng], 16);
+
+        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png")
+          .addTo(map);
+
+        marker = L.marker([lat, lng]).addTo(map);
+
+        map.invalidateSize();
+      }, 150);
+    };
   });
 }
-
 // ================== LOAD ==================
-async function loadEvents() {
+async function loadEvents(category = "all", search = "") {
+  loading?.classList.remove("hidden");
+  container.innerHTML = "";
+
   const apiEvents = await getEvents();
-  const userEvents = getUserEvents().map(e => ({
-    ...e,
-    fromUser: true
-  }));
+  const userEvents = getUserEvents().map(e => ({ ...e, fromUser: true }));
 
   apiEventsLength = apiEvents.length;
-  renderEvents([...apiEvents, ...userEvents]);
+
+  let all = [...apiEvents, ...userEvents];
+
+  if (category !== "all") {
+    all = all.filter(e => e.category === category);
+  }
+
+  if (search) {
+    all = all.filter(e =>
+      e.title.toLowerCase().includes(search.toLowerCase())
+    );
+  }
+
+  loading?.classList.add("hidden");
+  renderEvents(all);
 }
 
 loadEvents();
 
-// ================== CREATE ==================
-if (addEventBtn) {
-  addEventBtn.addEventListener("click", () => {
-    const title = prompt("Título do evento:");
-    const date = prompt("Data do evento:");
-    const location = prompt("Local do evento:");
-    const description = prompt("Descrição:");
+// BUSCA
+searchInput?.addEventListener("input", () => {
+  loadEvents(filter.value, searchInput.value);
+});
 
-    if (!title || !date || !location || !description) {
-      alert("Preencha todos os campos!");
-      return;
+// FILTRO
+filter?.addEventListener("change", () => {
+  loadEvents(filter.value, searchInput.value);
+});
+
+// MODAL
+addEventBtn.onclick = () => {
+  modal.classList.remove("hidden");
+
+  setTimeout(() => {
+    if (map) {
+      map.remove();
+      map = null;
     }
 
-    saveUserEvent({ title, date, location, description });
-    loadEvents();
-  });
-}
+    map = L.map("map").setView([selectedLat, selectedLng], 13);
 
-// ================== LOGOUT ==================
-logoutBtn.addEventListener("click", () => {
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png")
+      .addTo(map);
+
+    marker = L.marker([selectedLat, selectedLng]).addTo(map);
+
+    map.on("click", (e) => {
+      selectedLat = e.latlng.lat;
+      selectedLng = e.latlng.lng;
+      marker.setLatLng(e.latlng);
+    });
+  }, 100);
+};
+
+// FECHAR
+closeBtn.onclick = () => {
+  modal.classList.add("hidden");
+
+  if (map) {
+    map.remove();
+    map = null;
+  }
+};
+
+// SAVE (🔥 AGORA PROFISSIONAL)
+saveBtn.onclick = async () => {
+  const title = document.getElementById("title").value.trim();
+  const date = document.getElementById("date").value;
+  const location = document.getElementById("location").value.trim();
+  const description = document.getElementById("description").value.trim();
+  const category = document.getElementById("category").value.trim();
+  const banner = document.getElementById("banner").value.trim();
+  const doc = document.getElementById("doc").value.trim();
+
+  // 🔥 VALIDAÇÃO
+  if (!title || !date || !location) {
+    alert("Preencha os campos obrigatórios");
+    return;
+  }
+
+  let lat = null;
+  let lng = null;
+
+  // 🔥 BUSCAR COORDENADAS
+  const coords = await getCoordinates(location);
+
+  if (coords) {
+    lat = coords.lat;
+    lng = coords.lng;
+
+    selectedLat = lat;
+    selectedLng = lng;
+
+    if (map && marker) {
+      map.setView([lat, lng], 13);
+      marker.setLatLng([lat, lng]);
+    }
+  } else {
+    showToast("Local não encontrado 😢");
+
+    // ❗ DECISÃO: permitir salvar mesmo sem mapa
+    // se quiser obrigar localização, descomenta:
+    // return;
+  }
+
+  const newEvent = {
+    title,
+    date,
+    location,
+    description,
+    category,
+    banner,
+    doc,
+    lat,
+    lng
+  };
+
+  // 🔥 EDITAR OU CRIAR
+  if (editingIndex !== null) {
+    const events = getUserEvents();
+    events[editingIndex] = newEvent;
+    localStorage.setItem("userEvents", JSON.stringify(events));
+
+    showToast("Evento atualizado ✏️");
+    editingIndex = null;
+  } else {
+    saveUserEvent(newEvent);
+    showToast("Evento criado 🚀");
+  }
+
+  // 🔥 LIMPAR CAMPOS (UX PROFISSIONAL)
+  document.getElementById("title").value = "";
+  document.getElementById("date").value = "";
+  document.getElementById("location").value = "";
+  document.getElementById("description").value = "";
+  document.getElementById("category").value = "";
+  document.getElementById("banner").value = "";
+  document.getElementById("doc").value = "";
+
+  // 🔥 LIMPAR PREVIEW (COM SEGURANÇA)
+  if (typeof bannerPreview !== "undefined" && bannerPreview) {
+    bannerPreview.classList.add("hidden");
+    bannerPreview.src = "";
+  }
+
+  // 🔥 FECHAR MODAL
+  modal.classList.add("hidden");
+
+  // 🔥 LIMPAR MAPA
+  if (map) {
+    map.remove();
+    map = null;
+  }
+
+  // 🔥 RECARREGAR LISTA
+  loadEvents(filter.value, searchInput.value);
+};
+
+// LOGOUT
+logoutBtn.onclick = () => {
   localStorage.removeItem("user");
   window.location.href = "index.html";
-});
+};
+
+// ABOUT
+aboutBtn.onclick = () => {
+  aboutModal.classList.remove("hidden");
+};
+
+closeAbout.onclick = () => {
+  aboutModal.classList.add("hidden");
+};
