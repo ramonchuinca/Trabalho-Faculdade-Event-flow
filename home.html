@@ -1,7 +1,9 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>EventFlow | Eventos</title>
 
   <link rel="stylesheet" href="css/stars.css">
@@ -9,7 +11,7 @@
   <!-- LEAFLET -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-  
+
 
 
   <!-- TAILWIND -->
@@ -46,21 +48,16 @@
   <main class="relative z-10 p-6 max-w-7xl mx-auto">
 
     <!-- BOTÃO -->
-    <button id="addEventBtn"
-      class="mb-6 bg-indigo-600 px-4 py-2 rounded hover:bg-indigo-700 transition cursor-pointer">
+    <button id="addEventBtn" class="mb-6 bg-indigo-600 px-4 py-2 rounded hover:bg-indigo-700 transition cursor-pointer">
       + Criar Evento
     </button>
 
     <!-- BUSCA + FILTRO -->
     <div class="mb-4 flex flex-col md:flex-row gap-3">
-      
-      <input id="searchInput"
-        placeholder="Buscar evento..."
-        class="p-2 rounded text-black w-full"
-      />
 
-      <select id="filterCategory"
-        class="p-2 rounded text-black">
+      <input id="searchInput" placeholder="Buscar evento..." class="p-2 rounded text-black w-full" />
+
+      <select id="filterCategory" class="p-2 rounded text-black">
         <option value="all">Todas</option>
         <option value="Festa">Festa</option>
         <option value="Show">Show</option>
@@ -70,6 +67,7 @@
 
     </div>
 
+    
     <h2 class="text-2xl font-semibold mb-6 text-indigo-900">
       ✨ Próximos Eventos
     </h2>
@@ -80,15 +78,13 @@
     </div>
 
     <!-- EVENTOS -->
-    <div id="eventsContainer"
-      class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div id="eventsContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
     </div>
 
   </main>
 
   <!-- MODAL EVENTO -->
-  <div id="eventModal"
-    class="fixed inset-0 bg-black/50 hidden flex items-center justify-center z-50 overflow-y-auto">
+  <div id="eventModal" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center z-50 overflow-y-auto">
 
     <div class="bg-white text-black p-6 rounded-lg w-full max-w-md">
 
@@ -97,16 +93,21 @@
       <input id="title" placeholder="Título" class="w-full mb-2 p-2 border rounded">
       <input id="date" type="date" class="w-full mb-2 p-2 border rounded">
       <input id="location" placeholder="Local" class="w-full mb-2 p-2 border rounded">
-      <input id="category" placeholder="Categoria" class="w-full mb-2 p-2 border rounded">
-     <input id="banner" placeholder="URL do Banner" class="w-full mb-2 p-2 border rounded">
+      <input id="number" placeholder="Número" class="w-full mb-2 p-2 border rounded">
+      <input id="cep" placeholder="CEP (opcional)" class="w-full mb-2 p-2 border rounded">
+      <select id="category" class="w-full mb-2 p-2 border rounded">
+        <option value="">Selecione</option>
+        <option value="Festa">Festa</option>
+        <option value="Show">Show</option>
+        <option value="Esportivo">Esportivo</option>
+        <option value="Tecnologia">Tecnologia</option>
+      </select>
+      <input id="banner" placeholder="URL do Banner" class="w-full mb-2 p-2 border rounded">
 
-<img id="bannerPreview"
-     class="w-full h-32 object-cover rounded mb-2 hidden"
-     alt="Preview do banner">
+      <img id="bannerPreview" class="w-full h-32 object-cover rounded mb-2 hidden" alt="Preview do banner">
       <input id="doc" placeholder="Link do Documento" class="w-full mb-2 p-2 border rounded">
 
-      <textarea id="description" placeholder="Descrição"
-        class="w-full mb-2 p-2 border rounded"></textarea>
+      <textarea id="description" placeholder="Descrição" class="w-full mb-2 p-2 border rounded"></textarea>
 
       <div id="map" class="h-40 mb-3 rounded"></div>
 
@@ -125,8 +126,7 @@
   </div>
 
   <!-- MODAL SOBRE -->
-  <div id="aboutModal"
-    class="fixed inset-0 bg-black/60 hidden flex items-center justify-center z-50">
+  <div id="aboutModal" class="fixed inset-0 bg-black/60 hidden flex items-center justify-center z-50">
 
     <div class="bg-white text-black p-6 rounded-lg w-full max-w-3xl max-h-[85vh] overflow-y-auto shadow-2xl">
 
@@ -135,7 +135,8 @@
       </h2>
 
       <p class="mb-3">
-        Sistema web para gerenciamento de eventos, permitindo visualizar, filtrar e cadastrar eventos com localização no mapa.
+        Sistema web para gerenciamento de eventos, permitindo visualizar, filtrar e cadastrar eventos com localização no
+        mapa.
       </p>
 
       <hr class="my-4">
@@ -172,8 +173,7 @@
   </div>
 
   <!-- TOAST -->
-  <div id="toast"
-    class="fixed bottom-5 right-5 bg-green-600 text-white px-4 py-2 rounded shadow-lg hidden">
+  <div id="toast" class="fixed bottom-5 right-5 bg-green-600 text-white px-4 py-2 rounded shadow-lg hidden">
   </div>
 
   <!-- SCRIPTS -->
@@ -181,4 +181,5 @@
   <script type="module" src="js/controllers/eventController.js"></script>
 
 </body>
+
 </html>
