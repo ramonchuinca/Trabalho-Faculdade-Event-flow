@@ -20,6 +20,15 @@ const aboutBtn = document.getElementById("aboutBtn");
 const aboutModal = document.getElementById("aboutModal");
 const closeAbout = document.getElementById("closeAbout");
 
+const params = new URLSearchParams(window.location.search);
+const eventParam = params.get("event");
+
+if (eventParam) {
+  const event = JSON.parse(decodeURIComponent(eventParam));
+
+  renderEvents([event]); // mostra só o evento compartilhado
+}
+
 let apiEventsLength = 0;
 let editingId = null;
 
@@ -92,7 +101,7 @@ function renderEvents(events) {
   }
 
   events.forEach((event) => {
-    const shareLink = `${window.location.origin}/home.html?id=${event.id}`;
+    const shareLink = `${window.location.origin}/home.html?event=${encodeURIComponent(JSON.stringify(event))}`;
     const isUserEvent = !!event.fromUser;
 
     const card = document.createElement("div");
