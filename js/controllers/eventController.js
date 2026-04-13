@@ -20,28 +20,13 @@ const aboutBtn = document.getElementById("aboutBtn");
 const aboutModal = document.getElementById("aboutModal");
 const closeAbout = document.getElementById("closeAbout");
 
-// const params = new URLSearchParams(window.location.search);
+const params = new URLSearchParams(window.location.search);
 const eventParam = params.get("event");
 
-const params = new URLSearchParams(window.location.search);
-const eventId = params.get("id");
+if (eventParam) {
+  const event = JSON.parse(decodeURIComponent(eventParam));
 
-if (eventId) {
-  loadSingleEvent(eventId);
-}
-async function loadSingleEvent(id) {
-  const apiEvents = await getEvents();
-  const userEvents = JSON.parse(localStorage.getItem("userEvents")) || [];
-
-  const all = [...apiEvents, ...userEvents];
-
-  const event = all.find((e) => e.id == id);
-
-  if (event) {
-    renderEvents([event]);
-  } else {
-    container.innerHTML = `<p class="text-white text-center">Evento não encontrado 😢</p>`;
-  }
+  renderEvents([event]); // mostra só o evento compartilhado
 }
 
 let apiEventsLength = 0;
