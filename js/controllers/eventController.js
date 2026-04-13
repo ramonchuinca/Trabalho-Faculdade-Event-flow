@@ -1,9 +1,9 @@
-import { getEvents } from "../services/api.js";
 import {
-  getUserEvents,
-  saveUserEvent,
-  deleteUserEvent,
-} from "../models/eventModel.js";
+  getEvents,
+  createEvent,
+  updateEvent,
+  deleteEventApi,
+} from "../services/api.js";
 
 const container = document.getElementById("eventsContainer");
 const addEventBtn = document.getElementById("addEventBtn");
@@ -101,7 +101,9 @@ function renderEvents(events) {
   }
 
   events.forEach((event) => {
-   const shareLink = `${window.location.origin}/home.html?event=${encodeURIComponent(JSON.stringify(event))}`;
+    const shareLink = `${
+      window.location.origin
+    }/home.html?event=${encodeURIComponent(JSON.stringify(event))}`;
     const isUserEvent = !!event.fromUser;
 
     const card = document.createElement("div");
@@ -122,11 +124,13 @@ function renderEvents(events) {
       <p class="text-sm mt-2">${event.description || ""}</p>
 
       ${
-        event.lat
-          ? `<a href="https://www.google.com/maps?q=${event.lat},${event.lng}" target="_blank"
-              class="text-indigo-600 underline text-sm mt-2 block">
-              📍 Ver no mapa
-            </a>`
+        event.location
+          ? `<a href="https://www.google.com/maps?q=${encodeURIComponent(
+              event.location
+            )}" target="_blank"
+      class="text-indigo-600 underline text-sm mt-2 block">
+      📍 Ver no mapa
+    </a>`
           : ""
       }
 
@@ -165,48 +169,42 @@ function renderEvents(events) {
   });
 
   // ================= DELETE =================
- document.querySelectorAll(".deleteBtn").forEach((btn) => {
-  btn.onclick = (e) => {
-    const id = e.target.dataset.id;
+  document.querySelectorAll(".deleteBtn").forEach((btn) => {
+    btn.onclick = async (e) => {
+      const id = e.target.dataset.id;
 
-    let events = JSON.parse(localStorage.getItem("userEvents")) || [];
+      await deleteEventApi(id);
 
-    events = events.filter((event) => event.id !== id);
-
-    localStorage.setItem("userEvents", JSON.stringify(events));
-
-    loadEvents(filter.value, searchInput.value);
-    showToast("Evento excluído 🗑️");
-  };
-});
+      await loadEvents(filter.value, searchInput.value);
+      showToast("Evento excluído 🗑️");
+    };
+  });
 
   // ================= EDIT =================
-document.querySelectorAll(".editBtn").forEach((btn) => {
-  btn.onclick = (e) => {
-    const id = e.target.dataset.id;
+  document.querySelectorAll(".editBtn").forEach((btn) => {
+    btn.onclick = async (e) => {
+      const id = e.target.dataset.id;
 
-    const events = JSON.parse(localStorage.getItem("userEvents")) || [];
-    const event = events.find((ev) => ev.id === id);
+      const apiEvents = await getEvents();
+      const event = apiEvents.find((ev) => ev.id === id);
 
-    if (!event) {
-      console.log("Evento não encontrado ❌");
-      return;
-    }
+      if (!event) {
+        console.log("Evento não encontrado ❌");
+        return;
+      }
 
-    editingId = id;
-    console.log("EDITANDO ID:", editingId);
+      editingId = id;
 
-    document.getElementById("title").value = event.title;
-    document.getElementById("date").value = event.date;
-    document.getElementById("location").value = event.location;
-    document.getElementById("description").value = event.description;
-    document.getElementById("category").value = event.category;
-    document.getElementById("banner").value = event.banner;
-    document.getElementById("doc").value = event.doc;
+      document.getElementById("title").value = event.title;
+      document.getElementById("date").value = event.date;
+      document.getElementById("location").value = event.location;
+      document.getElementById("description").value = event.description;
+      document.getElementById("category").value = event.category;
+      document.getElementById("banner").value = event.banner;
 
-    modal.classList.remove("hidden");
-  };
-});
+      modal.classList.remove("hidden");
+    };
+  });
 
   // ================= COPY =================
   document.querySelectorAll(".copyBtn").forEach((btn) => {
@@ -221,34 +219,23 @@ document.querySelectorAll(".editBtn").forEach((btn) => {
 async function loadEvents(category = "all", search = "") {
   const apiEvents = await getEvents();
 
-  // 🔥 PEGA DIRETO DO LOCALSTORAGE
-  const userEvents = JSON.parse(localStorage.getItem("userEvents")) || [];
+  console.log("API:", apiEvents);
 
-  const userEventsFormatted = userEvents.map(e => ({
+  const apiEventsFormatted = apiEvents.map((e) => ({
     ...e,
-    fromUser: true
+    category: e.category || "Outros",
+    fromUser: true, // 🔥 ESSENCIAL
   }));
 
-  console.log("API:", apiEvents);
-  console.log("USER:", userEventsFormatted);
-
-  // let all = [...apiEvents, ...userEventsFormatted];
-  const apiEventsFormatted = apiEvents.map(e => ({
-  ...e,
-  category: e.category || "Outros", // 🔥 adiciona categoria padrão
-}));
-
-let all = [...apiEventsFormatted, ...userEventsFormatted];
+  let all = apiEventsFormatted;
 
   // FILTRO
-  // if (category !== "all") {
-  //   all = all.filter((e) => e.category === category);
-  // }
-if (category !== "all") {
-  all = all.filter((e) =>
-    (e.category || "").toLowerCase() === category.toLowerCase()
-  );
-}
+  if (category !== "all") {
+    all = all.filter(
+      (e) => (e.category || "").toLowerCase() === category.toLowerCase()
+    );
+  }
+
   // BUSCA
   if (search) {
     all = all.filter((e) =>
@@ -286,68 +273,36 @@ addEventBtn.onclick = () => {
 closeBtn.onclick = () => modal.classList.add("hidden");
 
 // ================== SAVE ==================
+
 saveBtn.onclick = async () => {
   let location = document.getElementById("location").value.trim();
-  const number = document.getElementById("number").value.trim();
-  const cep = document.getElementById("cep").value.trim();
-
-  if (number) location += `, ${number}`;
-
-  if (cep) {
-    const address = await getAddressByCEP(cep);
-    if (address) location = `${address}, ${number}`;
-  }
-
-  const coords = await getCoordinates(location);
-
-  let events = JSON.parse(localStorage.getItem("userEvents")) || [];
-
-  // 🔥 pega evento antigo (para não perder dados)
-  const oldEvent = events.find((ev) => ev.id === editingId) || {};
 
   const newEvent = {
-    ...oldEvent, // 🔥 mantém dados antigos
-
-    id: editingId || crypto.randomUUID(),
-    title: document.getElementById("title").value.trim() || oldEvent.title,
-    date: document.getElementById("date").value || oldEvent.date,
-    location: location || oldEvent.location,
-    description:
-      document.getElementById("description").value.trim() || oldEvent.description,
-    category:
-      document.getElementById("category").value || oldEvent.category,
-    banner:
-      document.getElementById("banner").value.trim() || oldEvent.banner,
-    doc: document.getElementById("doc").value.trim() || oldEvent.doc,
-    lat: coords?.lat || oldEvent.lat || null,
-    lng: coords?.lng || oldEvent.lng || null,
+    title: document.getElementById("title").value.trim(),
+    date: document.getElementById("date").value,
+    location,
+    description: document.getElementById("description").value.trim(),
+    category: document.getElementById("category").value,
+    banner: document.getElementById("banner").value.trim(),
   };
 
   if (!newEvent.title || !newEvent.date || !newEvent.location) {
-    showToast("Preencha os campos obrigatórios ⚠️");
+    showToast("Preencha os campos ⚠️");
     return;
   }
 
   if (editingId) {
-    events = events.map((ev) =>
-      ev.id === editingId ? newEvent : ev
-    );
-
-    console.log("EDITADO:", newEvent);
+    await updateEvent(editingId, newEvent); // ✏️ UPDATE
     editingId = null;
+    showToast("Evento atualizado 🚀");
   } else {
-    events.push(newEvent);
-    console.log("CRIADO:", newEvent);
+    await createEvent(newEvent); // ➕ CREATE
+    showToast("Evento criado 🚀");
   }
-
-  // 🔥 SALVA APENAS UMA VEZ (CORRETO)
-  localStorage.setItem("userEvents", JSON.stringify(events));
 
   modal.classList.add("hidden");
 
   await loadEvents(filter.value, searchInput.value);
-
-  showToast("Evento salvo 🚀");
 };
 // ================== ABOUT ==================
 aboutBtn.addEventListener("click", () => {
