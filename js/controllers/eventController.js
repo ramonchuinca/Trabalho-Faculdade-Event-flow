@@ -104,6 +104,7 @@ function renderEvents(events) {
           ? `<img src="${event.banner}" class="w-full h-40 object-cover rounded mb-3">`
           : ""
       }
+      
 
       <h3 class="font-bold text-indigo-600 text-lg">${event.title}</h3>
       <p>📅 ${event.date}</p>
@@ -155,46 +156,48 @@ function renderEvents(events) {
   });
 
   // ================= DELETE =================
-  document.querySelectorAll(".deleteBtn").forEach((btn) => {
-    btn.onclick = (e) => {
-      const id = e.target.dataset.id;
-
-      const events = getUserEvents().filter((event) => event.id !== id);
-
-      localStorage.setItem("userEvents", JSON.stringify(events));
-
-      loadEvents(filter.value, searchInput.value);
-      showToast("Evento excluído 🗑️");
-    };
-  });
-
-  // ================= EDIT =================
-  document.querySelectorAll(".editBtn").forEach((btn) => {
-    btn.onclick = (e) => {
-      const id = e.target.dataset.id;
-      console.log("EDITANDO ID:", editingId);
+ document.querySelectorAll(".deleteBtn").forEach((btn) => {
+  btn.onclick = (e) => {
+    const id = e.target.dataset.id;
 
     let events = JSON.parse(localStorage.getItem("userEvents")) || [];
-      const event = events.find((ev) => ev.id === id);
 
-      if (!event) return;
+    events = events.filter((event) => event.id !== id);
 
-      // 🔥 agora usa ID (correto)
-      editingId = id;
+    localStorage.setItem("userEvents", JSON.stringify(events));
 
-      document.getElementById("title").value = event.title;
-      document.getElementById("date").value = event.date
-        ? event.date.split("T")[0]
-        : "";
-      document.getElementById("location").value = event.location;
-      document.getElementById("description").value = event.description;
-      document.getElementById("category").value = event.category;
-      document.getElementById("banner").value = event.banner;
-      document.getElementById("doc").value = event.doc;
+    loadEvents(filter.value, searchInput.value);
+    showToast("Evento excluído 🗑️");
+  };
+});
 
-      modal.classList.remove("hidden");
-    };
-  });
+  // ================= EDIT =================
+document.querySelectorAll(".editBtn").forEach((btn) => {
+  btn.onclick = (e) => {
+    const id = e.target.dataset.id;
+
+    const events = JSON.parse(localStorage.getItem("userEvents")) || [];
+    const event = events.find((ev) => ev.id === id);
+
+    if (!event) {
+      console.log("Evento não encontrado ❌");
+      return;
+    }
+
+    editingId = id;
+    console.log("EDITANDO ID:", editingId);
+
+    document.getElementById("title").value = event.title;
+    document.getElementById("date").value = event.date;
+    document.getElementById("location").value = event.location;
+    document.getElementById("description").value = event.description;
+    document.getElementById("category").value = event.category;
+    document.getElementById("banner").value = event.banner;
+    document.getElementById("doc").value = event.doc;
+
+    modal.classList.remove("hidden");
+  };
+});
 
   // ================= COPY =================
   document.querySelectorAll(".copyBtn").forEach((btn) => {
@@ -208,23 +211,35 @@ function renderEvents(events) {
 // ================== LOAD ==================
 async function loadEvents(category = "all", search = "") {
   const apiEvents = await getEvents();
-  const userEventsRaw = getUserEvents();
 
-  const userEvents = userEventsRaw.map((e) => ({
+  // 🔥 PEGA DIRETO DO LOCALSTORAGE
+  const userEvents = JSON.parse(localStorage.getItem("userEvents")) || [];
+
+  const userEventsFormatted = userEvents.map(e => ({
     ...e,
-    fromUser: true,
+    fromUser: true
   }));
-  console.log("Eventos carregados:", [...apiEvents, ...userEvents]);
 
-  apiEventsLength = apiEvents.length;
+  console.log("API:", apiEvents);
+  console.log("USER:", userEventsFormatted);
 
-  let all = [...apiEvents, ...userEvents];
+  // let all = [...apiEvents, ...userEventsFormatted];
+  const apiEventsFormatted = apiEvents.map(e => ({
+  ...e,
+  category: e.category || "Outros", // 🔥 adiciona categoria padrão
+}));
+
+let all = [...apiEventsFormatted, ...userEventsFormatted];
 
   // FILTRO
-  if (category !== "all") {
-    all = all.filter((e) => e.category === category);
-  }
-
+  // if (category !== "all") {
+  //   all = all.filter((e) => e.category === category);
+  // }
+if (category !== "all") {
+  all = all.filter((e) =>
+    (e.category || "").toLowerCase() === category.toLowerCase()
+  );
+}
   // BUSCA
   if (search) {
     all = all.filter((e) =>
@@ -267,8 +282,6 @@ saveBtn.onclick = async () => {
   const number = document.getElementById("number").value.trim();
   const cep = document.getElementById("cep").value.trim();
 
-  console.log("SALVANDO EVENTO:", newEvent);
-
   if (number) location += `, ${number}`;
 
   if (cep) {
@@ -278,22 +291,27 @@ saveBtn.onclick = async () => {
 
   const coords = await getCoordinates(location);
 
-  const events = getUserEvents();
+  let events = JSON.parse(localStorage.getItem("userEvents")) || [];
+
+  // 🔥 pega evento antigo (para não perder dados)
+  const oldEvent = events.find((ev) => ev.id === editingId) || {};
 
   const newEvent = {
-    id: editingId || crypto.randomUUID(),
+    ...oldEvent, // 🔥 mantém dados antigos
 
-    title: document.getElementById("title").value.trim(),
-    date: new Date(document.getElementById("date").value)
-      .toISOString()
-      .split("T")[0],
-    location,
-    description: document.getElementById("description").value.trim(),
-    category: document.getElementById("category").value,
-    banner: document.getElementById("banner").value.trim(),
-    doc: document.getElementById("doc").value.trim(),
-    lat: coords?.lat || null,
-    lng: coords?.lng || null,
+    id: editingId || crypto.randomUUID(),
+    title: document.getElementById("title").value.trim() || oldEvent.title,
+    date: document.getElementById("date").value || oldEvent.date,
+    location: location || oldEvent.location,
+    description:
+      document.getElementById("description").value.trim() || oldEvent.description,
+    category:
+      document.getElementById("category").value || oldEvent.category,
+    banner:
+      document.getElementById("banner").value.trim() || oldEvent.banner,
+    doc: document.getElementById("doc").value.trim() || oldEvent.doc,
+    lat: coords?.lat || oldEvent.lat || null,
+    lng: coords?.lng || oldEvent.lng || null,
   };
 
   if (!newEvent.title || !newEvent.date || !newEvent.location) {
@@ -302,23 +320,26 @@ saveBtn.onclick = async () => {
   }
 
   if (editingId) {
-    // 🔥 atualiza pelo ID (não index)
-    const updatedEvents = events.map((event) =>
-      event.id === editingId ? newEvent : event
+    events = events.map((ev) =>
+      ev.id === editingId ? newEvent : ev
     );
 
-    localStorage.setItem("userEvents", JSON.stringify(updatedEvents));
-
+    console.log("EDITADO:", newEvent);
     editingId = null;
   } else {
-    saveUserEvent(newEvent);
+    events.push(newEvent);
+    console.log("CRIADO:", newEvent);
   }
 
+  // 🔥 SALVA APENAS UMA VEZ (CORRETO)
+  localStorage.setItem("userEvents", JSON.stringify(events));
+
   modal.classList.add("hidden");
-  loadEvents(filter.value, searchInput.value);
+
+  await loadEvents(filter.value, searchInput.value);
+
   showToast("Evento salvo 🚀");
 };
-
 // ================== ABOUT ==================
 aboutBtn.addEventListener("click", () => {
   aboutModal.classList.remove("hidden");
@@ -356,3 +377,18 @@ logoutBtn.onclick = () => {
   localStorage.removeItem("user");
   window.location.href = "index.html";
 };
+
+function getCategoryColor(category) {
+  switch (category) {
+    case "Festa":
+      return "bg-pink-500";
+    case "Show":
+      return "bg-purple-500";
+    case "Esportivo":
+      return "bg-green-500";
+    case "Tecnologia":
+      return "bg-indigo-500";
+    default:
+      return "bg-gray-500";
+  }
+}
