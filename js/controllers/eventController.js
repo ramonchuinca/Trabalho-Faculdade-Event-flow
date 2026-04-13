@@ -20,13 +20,28 @@ const aboutBtn = document.getElementById("aboutBtn");
 const aboutModal = document.getElementById("aboutModal");
 const closeAbout = document.getElementById("closeAbout");
 
-const params = new URLSearchParams(window.location.search);
+// const params = new URLSearchParams(window.location.search);
 const eventParam = params.get("event");
 
-if (eventParam) {
-  const event = JSON.parse(decodeURIComponent(eventParam));
+const params = new URLSearchParams(window.location.search);
+const eventId = params.get("id");
 
-  renderEvents([event]); // mostra só o evento compartilhado
+if (eventId) {
+  loadSingleEvent(eventId);
+}
+async function loadSingleEvent(id) {
+  const apiEvents = await getEvents();
+  const userEvents = JSON.parse(localStorage.getItem("userEvents")) || [];
+
+  const all = [...apiEvents, ...userEvents];
+
+  const event = all.find((e) => e.id == id);
+
+  if (event) {
+    renderEvents([event]);
+  } else {
+    container.innerHTML = `<p class="text-white text-center">Evento não encontrado 😢</p>`;
+  }
 }
 
 let apiEventsLength = 0;
@@ -101,7 +116,7 @@ function renderEvents(events) {
   }
 
   events.forEach((event) => {
-    const shareLink = `${window.location.origin}/home.html?event=${encodeURIComponent(JSON.stringify(event))}`;
+   const shareLink = `${window.location.origin}/home.html?id=${event.id}`;
     const isUserEvent = !!event.fromUser;
 
     const card = document.createElement("div");
