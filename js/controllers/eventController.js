@@ -101,7 +101,7 @@ function renderEvents(events) {
   }
 
   events.forEach((event) => {
-   const shareLink = `${window.location.origin}/home.html?id=${event.id}`;
+   const shareLink = `${window.location.origin}/home.html?event=${encodeURIComponent(JSON.stringify(event))}`;
     const isUserEvent = !!event.fromUser;
 
     const card = document.createElement("div");
