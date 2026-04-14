@@ -1,4 +1,4 @@
-const API = "http://localhost:3000/api/events";
+const API = "https://back-end-eventflow.onrender.com/api/events";
 
 export async function getEvents() {
   const res = await fetch(API);

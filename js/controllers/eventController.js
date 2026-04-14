@@ -70,15 +70,19 @@ function renderEvents(events) {
   events.forEach((event) => {
     const id = event._id; // 🔥 Mongo correto
 
-    const shareLink = `${window.location.origin}/home.html?event=${encodeURIComponent(
-      JSON.stringify(event)
-    )}`;
+    const shareLink = `${
+      window.location.origin
+    }/home.html?event=${encodeURIComponent(JSON.stringify(event))}`;
 
     const card = document.createElement("div");
     card.className = "bg-white/90 text-black rounded-xl shadow p-5";
 
     card.innerHTML = `
-      ${event.banner ? `<img src="${event.banner}" class="w-full h-40 object-cover rounded mb-3">` : ""}
+      ${
+        event.banner
+          ? `<img src="${event.banner}" class="w-full h-40 object-cover rounded mb-3">`
+          : ""
+      }
 
       <h3 class="font-bold text-indigo-600 text-lg">${event.title || ""}</h3>
       <p>📅 ${event.date || ""}</p>
@@ -131,28 +135,60 @@ function renderEvents(events) {
 
   // EDIT
   document.querySelectorAll(".editBtn").forEach((btn) => {
-    btn.onclick = async (e) => {
-      const id = e.target.dataset.id;
+  btn.onclick = async (e) => {
+  const id = e.target.dataset.id;
 
-      const events = await getEvents();
-      const event = (events || []).find((ev) => ev._id === id);
+  const events = await getEvents();
+  const event = (events || []).find((ev) => ev._id === id);
 
-      if (!event) {
-        console.log("Evento não encontrado ❌");
-        return;
+  if (!event) {
+    console.log("Evento não encontrado ❌");
+    return;
+  }
+
+  editingId = id;
+
+  document.getElementById("title").value = event.title || "";
+  document.getElementById("date").value = event.date || "";
+  document.getElementById("location").value = event.location || "";
+  document.getElementById("description").value = event.description || "";
+  document.getElementById("category").value = event.category || "";
+  document.getElementById("banner").value = event.banner || "";
+
+  modal.classList.remove("hidden");
+
+  // 🔥 INICIALIZA O MAPA
+  setTimeout(() => {
+    if (!map) {
+      map = L.map("map").setView([-8.76, -63.9], 13);
+
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        attribution: "&copy; OpenStreetMap",
+      }).addTo(map);
+
+      map.on("click", (e) => {
+        if (marker) {
+          marker.setLatLng(e.latlng);
+        } else {
+          marker = L.marker(e.latlng).addTo(map);
+        }
+      });
+    }
+
+    map.invalidateSize();
+
+    // 🔥 AQUI ENTRA SEU CÓDIGO
+    if (event.lat && event.lng) {
+      map.setView([event.lat, event.lng], 15);
+
+      if (marker) {
+        marker.setLatLng([event.lat, event.lng]);
+      } else {
+        marker = L.marker([event.lat, event.lng]).addTo(map);
       }
-
-      editingId = id;
-
-      document.getElementById("title").value = event.title || "";
-      document.getElementById("date").value = event.date || "";
-      document.getElementById("location").value = event.location || "";
-      document.getElementById("description").value = event.description || "";
-      document.getElementById("category").value = event.category || "";
-      document.getElementById("banner").value = event.banner || "";
-
-      modal.classList.remove("hidden");
-    };
+    }
+  }, 200);
+};
   });
 
   // COPY
@@ -172,6 +208,8 @@ saveBtn.onclick = async () => {
     description: document.getElementById("description").value.trim(),
     category: document.getElementById("category").value,
     banner: document.getElementById("banner").value.trim(),
+    lat: marker ? marker.getLatLng().lat : null,
+    lng: marker ? marker.getLatLng().lng : null,
   };
 
   if (!newEvent.title || !newEvent.date || !newEvent.location) {
@@ -203,6 +241,26 @@ searchInput.addEventListener("input", () => {
 addEventBtn.onclick = () => {
   editingId = null;
   modal.classList.remove("hidden");
+
+  setTimeout(() => {
+    if (!map) {
+      map = L.map("map").setView([-8.76, -63.9], 13);
+
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        attribution: "&copy; OpenStreetMap",
+      }).addTo(map);
+
+      map.on("click", (e) => {
+        if (marker) {
+          marker.setLatLng(e.latlng);
+        } else {
+          marker = L.marker(e.latlng).addTo(map);
+        }
+      });
+    }
+
+    map.invalidateSize();
+  }, 200);
 };
 
 closeBtn.onclick = () => modal.classList.add("hidden");
