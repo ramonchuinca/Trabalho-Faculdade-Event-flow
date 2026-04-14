@@ -82,90 +82,86 @@
 
   </main>
 
- <div id="eventModal"
-  class="fixed inset-0 bg-black/50 hidden flex items-center justify-center z-50 p-4">
+  <div id="eventModal" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center z-50 p-4">
 
-  <div class="bg-white text-black rounded-xl w-full max-w-md max-h-[90vh] overflow-hidden shadow-2xl">
+    <div class="bg-white text-black rounded-xl w-full max-w-md max-h-[90vh] overflow-hidden shadow-2xl">
 
-    <!-- HEADER FIXO -->
-    <div class="p-4 border-b flex justify-between items-center">
-      <h2 class="text-xl font-bold">Evento</h2>
-      <button id="closeModal" class="text-gray-500 hover:text-black text-lg">✖</button>
+      <!-- HEADER FIXO -->
+      <div class="p-4 border-b flex justify-between items-center">
+        <h2 class="text-xl font-bold">Evento</h2>
+        <button id="closeModal" class="text-gray-500 hover:text-black text-lg">✖</button>
+      </div>
+
+      <!-- CONTEÚDO COM SCROLL -->
+      <div class="p-4 overflow-y-auto max-h-[70vh]">
+
+        <!-- TÍTULO -->
+        <label class="block text-sm font-semibold mb-1">Título do Evento</label>
+        <input id="title" placeholder="Ex: Festa de Aniversário" class="w-full mb-3 p-2 border rounded">
+
+        <!-- DATA -->
+        <label class="block text-sm font-semibold mb-1">Data</label>
+        <input id="date" type="date" class="w-full mb-3 p-2 border rounded">
+
+        <!-- ENDEREÇO -->
+        <label class="block text-sm font-semibold mb-1">Rua / Endereço</label>
+        <input id="location" placeholder="Ex: Rua das Flores, 123" class="w-full mb-3 p-2 border rounded">
+
+        <!-- NÚMERO -->
+        <label class="block text-sm font-semibold mb-1">Número</label>
+        <input id="number" placeholder="Ex: 123" class="w-full mb-3 p-2 border rounded">
+
+        <!-- CEP -->
+        <label class="block text-sm font-semibold mb-1">CEP</label>
+        <input id="cep" placeholder="Ex: 76800-000 (opcional)" class="w-full mb-3 p-2 border rounded">
+
+        <!-- CATEGORIA -->
+        <label class="block text-sm font-semibold mb-1">Categoria</label>
+        <select id="category" class="w-full mb-3 p-2 border rounded">
+          <option value="">Selecione uma categoria</option>
+          <option value="Festa">Festa</option>
+          <option value="Show">Show</option>
+          <option value="Esportivo">Esportivo</option>
+          <option value="Tecnologia">Tecnologia</option>
+        </select>
+
+        <!-- BANNER -->
+        <label class="block text-sm font-semibold mb-1">URL do Banner</label>
+
+        <div class="flex gap-2">
+          <input id="banner" placeholder="https://imagem.com/banner.jpg" class="w-full mb-3 p-2 border rounded">
+
+          <button id="openGallery" class="bg-indigo-600 text-white px-3 rounded hover:bg-indigo-700">
+            🔍
+          </button>
+        </div>
+
+        <!-- DOCUMENTO -->
+        <label class="block text-sm font-semibold mb-1">Link do Documento</label>
+        <input id="doc" placeholder="https://documento.com" class="w-full mb-3 p-2 border rounded">
+
+        <!-- DESCRIÇÃO -->
+        <label class="block text-sm font-semibold mb-1">Descrição</label>
+        <textarea id="description" placeholder="Descreva o evento..." class="w-full mb-3 p-2 border rounded"></textarea>
+
+        <!-- MAPA -->
+        <label class="block text-sm font-semibold mb-1">Localização no mapa</label>
+        <div id="map" class="h-48 rounded mb-4"></div>
+
+      </div>
+
+      <!-- FOOTER FIXO -->
+      <div class="p-4 border-t flex justify-end gap-2">
+        <button class="px-4 py-2 bg-gray-400 text-white rounded hover:bg-gray-500">
+          Cancelar
+        </button>
+        <button id="saveEvent" class="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700">
+          Salvar
+        </button>
+      </div>
+
     </div>
-
-    <!-- CONTEÚDO COM SCROLL -->
-    <div class="p-4 overflow-y-auto max-h-[70vh]">
-
-      <!-- TÍTULO -->
-      <label class="block text-sm font-semibold mb-1">Título do Evento</label>
-      <input id="title" placeholder="Ex: Festa de Aniversário"
-        class="w-full mb-3 p-2 border rounded">
-
-      <!-- DATA -->
-      <label class="block text-sm font-semibold mb-1">Data</label>
-      <input id="date" type="date"
-        class="w-full mb-3 p-2 border rounded">
-
-      <!-- ENDEREÇO -->
-      <label class="block text-sm font-semibold mb-1">Rua / Endereço</label>
-      <input id="location" placeholder="Ex: Rua das Flores, 123"
-        class="w-full mb-3 p-2 border rounded">
-
-      <!-- NÚMERO -->
-      <label class="block text-sm font-semibold mb-1">Número</label>
-      <input id="number" placeholder="Ex: 123"
-        class="w-full mb-3 p-2 border rounded">
-
-      <!-- CEP -->
-      <label class="block text-sm font-semibold mb-1">CEP</label>
-      <input id="cep" placeholder="Ex: 76800-000 (opcional)"
-        class="w-full mb-3 p-2 border rounded">
-
-      <!-- CATEGORIA -->
-      <label class="block text-sm font-semibold mb-1">Categoria</label>
-      <select id="category"
-        class="w-full mb-3 p-2 border rounded">
-        <option value="">Selecione uma categoria</option>
-        <option value="Festa">Festa</option>
-        <option value="Show">Show</option>
-        <option value="Esportivo">Esportivo</option>
-        <option value="Tecnologia">Tecnologia</option>
-      </select>
-
-      <!-- BANNER -->
-      <label class="block text-sm font-semibold mb-1">URL do Banner</label>
-      <input id="banner" placeholder="https://imagem.com/banner.jpg"
-        class="w-full mb-3 p-2 border rounded">
-
-      <!-- DOCUMENTO -->
-      <label class="block text-sm font-semibold mb-1">Link do Documento</label>
-      <input id="doc" placeholder="https://documento.com"
-        class="w-full mb-3 p-2 border rounded">
-
-      <!-- DESCRIÇÃO -->
-      <label class="block text-sm font-semibold mb-1">Descrição</label>
-      <textarea id="description" placeholder="Descreva o evento..."
-        class="w-full mb-3 p-2 border rounded"></textarea>
-
-      <!-- MAPA -->
-      <label class="block text-sm font-semibold mb-1">Localização no mapa</label>
-      <div id="map" class="h-48 rounded mb-4"></div>
-
-    </div>
-
-    <!-- FOOTER FIXO -->
-    <div class="p-4 border-t flex justify-end gap-2">
-      <button class="px-4 py-2 bg-gray-400 text-white rounded hover:bg-gray-500">
-        Cancelar
-      </button>
-      <button id="saveEvent"
-        class="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700">
-        Salvar
-      </button>
-    </div>
-
   </div>
-</div>
 
   <!-- MODAL SOBRE -->
   <div id="aboutModal" class="fixed inset-0 bg-black/60 hidden flex items-center justify-center z-50">
@@ -183,91 +179,93 @@
 
       <hr class="my-4">
 
-     <h3 class="font-bold text-lg">📌 Sobre o projeto</h3>
-<p class="text-sm mt-2">
-  O <strong>EventFlow</strong> é uma aplicação web para gerenciamento de eventos, permitindo visualizar, cadastrar, editar e excluir eventos, com suporte a localização no mapa e compartilhamento.
-</p>
+      <h3 class="font-bold text-lg">📌 Sobre o projeto</h3>
+      <p class="text-sm mt-2">
+        O <strong>EventFlow</strong> é uma aplicação web para gerenciamento de eventos, permitindo visualizar,
+        cadastrar, editar e excluir eventos, com suporte a localização no mapa e compartilhamento.
+      </p>
 
-<p class="text-sm mt-2">
-  O projeto foi desenvolvido seguindo o padrão <strong>MVC (Model-View-Controller)</strong>, garantindo organização, escalabilidade e separação de responsabilidades.
-</p>
+      <p class="text-sm mt-2">
+        O projeto foi desenvolvido seguindo o padrão <strong>MVC (Model-View-Controller)</strong>, garantindo
+        organização, escalabilidade e separação de responsabilidades.
+      </p>
 
-<h3 class="font-bold text-lg mt-4">🎯 Objetivo</h3>
-<ul class="list-disc ml-5 text-sm mt-2">
-  <li>Estruturação com HTML</li>
-  <li>Estilização com CSS / Tailwind</li>
-  <li>Manipulação do DOM com JavaScript</li>
-  <li>Trabalho com JSON</li>
-  <li>Integração com APIs</li>
-  <li>Uso do padrão MVC</li>
-  <li>CRUD completo</li>
-  <li>Autenticação básica</li>
-</ul>
+      <h3 class="font-bold text-lg mt-4">🎯 Objetivo</h3>
+      <ul class="list-disc ml-5 text-sm mt-2">
+        <li>Estruturação com HTML</li>
+        <li>Estilização com CSS / Tailwind</li>
+        <li>Manipulação do DOM com JavaScript</li>
+        <li>Trabalho com JSON</li>
+        <li>Integração com APIs</li>
+        <li>Uso do padrão MVC</li>
+        <li>CRUD completo</li>
+        <li>Autenticação básica</li>
+      </ul>
 
-<h3 class="font-bold text-lg mt-4">🧱 Arquitetura (MVC)</h3>
-<ul class="list-disc ml-5 text-sm mt-2">
-  <li><strong>Model:</strong> Gerencia dados (localStorage)</li>
-  <li><strong>View:</strong> Interface com HTML + Tailwind</li>
-  <li><strong>Controller:</strong> Lógica e manipulação do DOM</li>
-</ul>
+      <h3 class="font-bold text-lg mt-4">🧱 Arquitetura (MVC)</h3>
+      <ul class="list-disc ml-5 text-sm mt-2">
+        <li><strong>Model:</strong> Gerencia dados (localStorage)</li>
+        <li><strong>View:</strong> Interface com HTML + Tailwind</li>
+        <li><strong>Controller:</strong> Lógica e manipulação do DOM</li>
+      </ul>
 
-<h3 class="font-bold text-lg mt-4">✨ Funcionalidades</h3>
-<ul class="list-disc ml-5 text-sm mt-2">
-  <li>Listagem de eventos (API + localStorage)</li>
-  <li>Cadastro de eventos</li>
-  <li>Edição de eventos</li>
-  <li>Exclusão de eventos</li>
-  <li>Busca por nome</li>
-  <li>Filtro por categoria</li>
-  <li>Compartilhamento com link</li>
-  <li>QR Code do evento</li>
-</ul>
+      <h3 class="font-bold text-lg mt-4">✨ Funcionalidades</h3>
+      <ul class="list-disc ml-5 text-sm mt-2">
+        <li>Listagem de eventos (API + localStorage)</li>
+        <li>Cadastro de eventos</li>
+        <li>Edição de eventos</li>
+        <li>Exclusão de eventos</li>
+        <li>Busca por nome</li>
+        <li>Filtro por categoria</li>
+        <li>Compartilhamento com link</li>
+        <li>QR Code do evento</li>
+      </ul>
 
-<h3 class="font-bold text-lg mt-4">📍 Localização</h3>
-<ul class="list-disc ml-5 text-sm mt-2">
-  <li>Busca de endereço via CEP (ViaCEP)</li>
-  <li>Mapa interativo com Leaflet.js</li>
-  <li>Seleção de localização no mapa</li>
-  <li>Link direto para Google Maps</li>
-</ul>
+      <h3 class="font-bold text-lg mt-4">📍 Localização</h3>
+      <ul class="list-disc ml-5 text-sm mt-2">
+        <li>Busca de endereço via CEP (ViaCEP)</li>
+        <li>Mapa interativo com Leaflet.js</li>
+        <li>Seleção de localização no mapa</li>
+        <li>Link direto para Google Maps</li>
+      </ul>
 
-<h3 class="font-bold text-lg mt-4">🖼️ Conteúdo do evento</h3>
-<ul class="list-disc ml-5 text-sm mt-2">
-  <li>Banner do evento (URL)</li>
-  <li>Documento explicativo</li>
-  <li>Descrição completa</li>
-</ul>
+      <h3 class="font-bold text-lg mt-4">🖼️ Conteúdo do evento</h3>
+      <ul class="list-disc ml-5 text-sm mt-2">
+        <li>Banner do evento (URL)</li>
+        <li>Documento explicativo</li>
+        <li>Descrição completa</li>
+      </ul>
 
-<h3 class="font-bold text-lg mt-4">🔐 Autenticação</h3>
-<ul class="list-disc ml-5 text-sm mt-2">
-  <li>Login básico</li>
-  <li>Proteção de rotas</li>
-  <li>Sessão com localStorage</li>
-</ul>
+      <h3 class="font-bold text-lg mt-4">🔐 Autenticação</h3>
+      <ul class="list-disc ml-5 text-sm mt-2">
+        <li>Login básico</li>
+        <li>Proteção de rotas</li>
+        <li>Sessão com localStorage</li>
+      </ul>
 
-<h3 class="font-bold text-lg mt-4">🌐 Tecnologias</h3>
-<ul class="list-disc ml-5 text-sm mt-2">
-  <li>HTML5</li>
-  <li>CSS3 / TailwindCSS</li>
-  <li>JavaScript (ES6+)</li>
-  <li>LocalStorage</li>
-  <li>ViaCEP API</li>
-  <li>Leaflet.js</li>
-</ul>
+      <h3 class="font-bold text-lg mt-4">🌐 Tecnologias</h3>
+      <ul class="list-disc ml-5 text-sm mt-2">
+        <li>HTML5</li>
+        <li>CSS3 / TailwindCSS</li>
+        <li>JavaScript (ES6+)</li>
+        <li>LocalStorage</li>
+        <li>ViaCEP API</li>
+        <li>Leaflet.js</li>
+      </ul>
 
-<h3 class="font-bold text-lg mt-4">🚀 Melhorias futuras</h3>
-<ul class="list-disc ml-5 text-sm mt-2">
-  <li>Backend real (Laravel / Node)</li>
-  <li>Banco de dados</li>
-  <li>Upload real de imagens</li>
-  <li>Sistema de usuários completo</li>
-  <li>Deploy da aplicação</li>
-</ul>
+      <h3 class="font-bold text-lg mt-4">🚀 Melhorias futuras</h3>
+      <ul class="list-disc ml-5 text-sm mt-2">
+        <li>Backend real (Laravel / Node)</li>
+        <li>Banco de dados</li>
+        <li>Upload real de imagens</li>
+        <li>Sistema de usuários completo</li>
+        <li>Deploy da aplicação</li>
+      </ul>
 
-<h3 class="font-bold text-lg mt-4">👨‍💻 Autor</h3>
-<p class="text-sm mt-2">
-  Desenvolvido por <strong>Ramon Chuinca</strong> 🚀
-</p>
+      <h3 class="font-bold text-lg mt-4">👨‍💻 Autor</h3>
+      <p class="text-sm mt-2">
+        Desenvolvido por <strong>Ramon Chuinca</strong> 🚀
+      </p>
 
       <div class="flex justify-end mt-6">
         <button id="closeAbout"
@@ -281,6 +279,20 @@
 
   <!-- TOAST -->
   <div id="toast" class="fixed bottom-5 right-5 bg-green-600 text-white px-4 py-2 rounded shadow-lg hidden">
+  </div>
+
+  <div id="imageModal" class="fixed inset-0 bg-black/70 hidden flex items-center justify-center z-50">
+    <div class="bg-white p-4 rounded w-full max-w-3xl">
+
+      <input id="imageSearch" placeholder="Buscar imagem..." class="w-full mb-3 p-2 border rounded">
+
+      <div id="imageResults" class="grid grid-cols-2 md:grid-cols-3 gap-3 max-h-96 overflow-y-auto"></div>
+
+      <button id="closeImageModal" class="mt-3 bg-gray-500 text-white px-4 py-2 rounded">
+        Fechar
+      </button>
+
+    </div>
   </div>
 
   <!-- SCRIPTS -->

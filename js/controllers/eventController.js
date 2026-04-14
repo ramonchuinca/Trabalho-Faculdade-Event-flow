@@ -277,3 +277,50 @@ logoutBtn.onclick = () => {
 
 // INIT
 loadEvents(filter.value, searchInput.value);
+
+
+const openGallery = document.getElementById("openGallery");
+const imageModal = document.getElementById("imageModal");
+const imageSearch = document.getElementById("imageSearch");
+const imageResults = document.getElementById("imageResults");
+const closeImageModal = document.getElementById("closeImageModal");
+
+// 🔑 SUA API KEY (criar no Unsplash)
+const ACCESS_KEY = "SUA_KEY_AQUI";
+
+openGallery.onclick = () => {
+  imageModal.classList.remove("hidden");
+};
+
+closeImageModal.onclick = () => {
+  imageModal.classList.add("hidden");
+};
+
+// BUSCAR IMAGENS
+imageSearch.addEventListener("input", async () => {
+  const query = imageSearch.value;
+
+  if (query.length < 3) return;
+
+  const res = await fetch(
+    `https://api.unsplash.com/search/photos?query=${query}&client_id=${ACCESS_KEY}`
+  );
+
+  const data = await res.json();
+
+  imageResults.innerHTML = "";
+
+  data.results.forEach((img) => {
+    const imageEl = document.createElement("img");
+
+    imageEl.src = img.urls.small;
+    imageEl.className = "cursor-pointer rounded hover:scale-105 transition";
+
+    imageEl.onclick = () => {
+      document.getElementById("banner").value = img.urls.regular;
+      imageModal.classList.add("hidden");
+    };
+
+    imageResults.appendChild(imageEl);
+  });
+});
