@@ -27,6 +27,12 @@ export async function updateEvent(id, data) {
     body: JSON.stringify(data),
   });
 
+  if (!res.ok) {
+    const text = await res.text();
+    console.error("Erro:", text);
+    throw new Error("Erro ao atualizar evento");
+  }
+
   return res.json();
 }
 

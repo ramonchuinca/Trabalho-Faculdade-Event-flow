@@ -11,7 +11,6 @@ const logoutBtn = document.getElementById("logoutBtn");
 
 const filter = document.getElementById("filterCategory");
 const searchInput = document.getElementById("searchInput");
-
 const modal = document.getElementById("eventModal");
 const closeBtn = document.getElementById("closeModal");
 const saveBtn = document.getElementById("saveEvent");
@@ -20,75 +19,40 @@ const aboutBtn = document.getElementById("aboutBtn");
 const aboutModal = document.getElementById("aboutModal");
 const closeAbout = document.getElementById("closeAbout");
 
-const params = new URLSearchParams(window.location.search);
-const eventParam = params.get("event");
-
-if (eventParam) {
-  const event = JSON.parse(decodeURIComponent(eventParam));
-
-  renderEvents([event]); // mostra só o evento compartilhado
-}
-
-let apiEventsLength = 0;
 let editingId = null;
-
 let map;
 let marker;
 
-// ================== UUID ==================
-function generateUUID() {
-  return crypto.randomUUID();
-}
-
-// ================== CEP ==================
-async function getAddressByCEP(cep) {
+// ================== LOAD ==================
+async function loadEvents(category = "all", search = "") {
   try {
-    const cleanCep = cep.replace(/\D/g, "");
-    const res = await fetch(`https://viacep.com.br/ws/${cleanCep}/json/`);
-    const data = await res.json();
-    if (data.erro) return null;
-    return `${data.logradouro}, ${data.bairro}, ${data.localidade}`;
-  } catch {
-    return null;
+    const apiEvents = await getEvents();
+
+    const events = (apiEvents || []).map((e) => ({
+      ...e,
+      fromUser: true,
+    }));
+
+    let filtered = events;
+
+    // FILTRO
+    if (category !== "all") {
+      filtered = filtered.filter(
+        (e) => (e.category || "").toLowerCase() === category.toLowerCase()
+      );
+    }
+
+    // BUSCA
+    if (search) {
+      filtered = filtered.filter((e) =>
+        (e.title || "").toLowerCase().includes(search.toLowerCase())
+      );
+    }
+
+    renderEvents(filtered);
+  } catch (err) {
+    console.error("Erro ao carregar eventos:", err);
   }
-}
-
-// ================== GEO ==================
-async function getCoordinates(place) {
-  try {
-    const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
-      place
-    )}&limit=1`;
-    const res = await fetch(url);
-    const data = await res.json();
-
-    if (data.length > 0) {
-      return {
-        lat: parseFloat(data[0].lat),
-        lng: parseFloat(data[0].lon),
-      };
-    }
-  } catch {}
-  return null;
-}
-
-// ================== MAP ==================
-function initMap() {
-  if (map) return;
-
-  map = L.map("map").setView([-8.76, -63.9], 13);
-
-  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-    attribution: "&copy; OpenStreetMap",
-  }).addTo(map);
-
-  map.on("click", (e) => {
-    if (marker) {
-      marker.setLatLng(e.latlng);
-    } else {
-      marker = L.marker(e.latlng).addTo(map);
-    }
-  });
 }
 
 // ================== RENDER ==================
@@ -96,43 +60,38 @@ function renderEvents(events) {
   container.innerHTML = "";
 
   if (!events.length) {
-    container.innerHTML = `<p class="text-white text-center col-span-3">Nenhum evento encontrado 😢</p>`;
+    container.innerHTML = `
+      <p class="text-white text-center col-span-3">
+        Nenhum evento encontrado 😢
+      </p>`;
     return;
   }
 
   events.forEach((event) => {
-    const shareLink = `${
-      window.location.origin
-    }/home.html?event=${encodeURIComponent(JSON.stringify(event))}`;
-    const isUserEvent = !!event.fromUser;
+    const id = event._id; // 🔥 Mongo correto
+
+    const shareLink = `${window.location.origin}/home.html?event=${encodeURIComponent(
+      JSON.stringify(event)
+    )}`;
 
     const card = document.createElement("div");
     card.className = "bg-white/90 text-black rounded-xl shadow p-5";
 
     card.innerHTML = `
-      ${
-        event.banner
-          ? `<img src="${event.banner}" class="w-full h-40 object-cover rounded mb-3">`
-          : ""
-      }
-      
+      ${event.banner ? `<img src="${event.banner}" class="w-full h-40 object-cover rounded mb-3">` : ""}
 
-      <h3 class="font-bold text-indigo-600 text-lg">${event.title}</h3>
-      <p>📅 ${event.date}</p>
-      <p>📍 ${event.location}</p>
+      <h3 class="font-bold text-indigo-600 text-lg">${event.title || ""}</h3>
+      <p>📅 ${event.date || ""}</p>
+      <p>📍 ${event.location || ""}</p>
 
       <p class="text-sm mt-2">${event.description || ""}</p>
 
-      ${
-        event.location
-          ? `<a href="https://www.google.com/maps?q=${encodeURIComponent(
-              event.location
-            )}" target="_blank"
+      <a href="https://www.google.com/maps?q=${encodeURIComponent(
+        event.location || ""
+      )}" target="_blank"
       class="text-indigo-600 underline text-sm mt-2 block">
-      📍 Ver no mapa
-    </a>`
-          : ""
-      }
+        📍 Ver no mapa
+      </a>
 
       <a href="${shareLink}" target="_blank"
         class="text-green-600 underline text-sm mt-2 block">
@@ -146,47 +105,37 @@ function renderEvents(events) {
       <img src="https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${shareLink}"
            class="mt-3 rounded">
 
-      ${
-        isUserEvent
-          ? `
-       <div class="flex gap-2 mt-3">
-  <button data-id="${event.id}" 
-    class="editBtn bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded-lg text-sm transition">
-    ✏️ Editar
-  </button>
+      <div class="flex gap-2 mt-3">
+        <button data-id="${id}" class="editBtn bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded-lg text-sm">
+          ✏️ Editar
+        </button>
 
-  <button data-id="${event.id}" 
-    class="deleteBtn bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-lg text-sm transition">
-    🗑️ Excluir
-  </button>
-</div>
-      `
-          : ""
-      }
+        <button data-id="${id}" class="deleteBtn bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-lg text-sm">
+          🗑️ Excluir
+        </button>
+      </div>
     `;
 
     container.appendChild(card);
   });
 
-  // ================= DELETE =================
+  // DELETE
   document.querySelectorAll(".deleteBtn").forEach((btn) => {
     btn.onclick = async (e) => {
       const id = e.target.dataset.id;
 
       await deleteEventApi(id);
-
       await loadEvents(filter.value, searchInput.value);
-      showToast("Evento excluído 🗑️");
     };
   });
 
-  // ================= EDIT =================
+  // EDIT
   document.querySelectorAll(".editBtn").forEach((btn) => {
     btn.onclick = async (e) => {
       const id = e.target.dataset.id;
 
-      const apiEvents = await getEvents();
-      const event = apiEvents.find((ev) => ev.id === id);
+      const events = await getEvents();
+      const event = (events || []).find((ev) => ev._id === id);
 
       if (!event) {
         console.log("Evento não encontrado ❌");
@@ -195,66 +144,57 @@ function renderEvents(events) {
 
       editingId = id;
 
-      document.getElementById("title").value = event.title;
-      document.getElementById("date").value = event.date;
-      document.getElementById("location").value = event.location;
-      document.getElementById("description").value = event.description;
-      document.getElementById("category").value = event.category;
-      document.getElementById("banner").value = event.banner;
+      document.getElementById("title").value = event.title || "";
+      document.getElementById("date").value = event.date || "";
+      document.getElementById("location").value = event.location || "";
+      document.getElementById("description").value = event.description || "";
+      document.getElementById("category").value = event.category || "";
+      document.getElementById("banner").value = event.banner || "";
 
       modal.classList.remove("hidden");
     };
   });
 
-  // ================= COPY =================
+  // COPY
   document.querySelectorAll(".copyBtn").forEach((btn) => {
     btn.onclick = (e) => {
       navigator.clipboard.writeText(e.target.dataset.link);
-      showToast("Link copiado 🚀");
     };
   });
 }
 
-// ================== LOAD ==================
-async function loadEvents(category = "all", search = "") {
-  const apiEvents = await getEvents();
+// ================== SAVE ==================
+saveBtn.onclick = async () => {
+  const newEvent = {
+    title: document.getElementById("title").value.trim(),
+    date: document.getElementById("date").value,
+    location: document.getElementById("location").value.trim(),
+    description: document.getElementById("description").value.trim(),
+    category: document.getElementById("category").value,
+    banner: document.getElementById("banner").value.trim(),
+  };
 
-  console.log("API:", apiEvents);
-
-  const apiEventsFormatted = apiEvents.map((e) => ({
-    ...e,
-    category: e.category || "Outros",
-    fromUser: true, // 🔥 ESSENCIAL
-  }));
-
-  let all = apiEventsFormatted;
-
-  // FILTRO
-  if (category !== "all") {
-    all = all.filter(
-      (e) => (e.category || "").toLowerCase() === category.toLowerCase()
-    );
+  if (!newEvent.title || !newEvent.date || !newEvent.location) {
+    alert("Preencha os campos obrigatórios");
+    return;
   }
 
-  // BUSCA
-  if (search) {
-    all = all.filter((e) =>
-      e.title.toLowerCase().includes(search.toLowerCase())
-    );
+  if (editingId) {
+    await updateEvent(editingId, newEvent);
+    editingId = null;
+  } else {
+    await createEvent(newEvent);
   }
 
-  renderEvents(all);
-}
+  modal.classList.add("hidden");
+  await loadEvents(filter.value, searchInput.value);
+};
 
-// INICIAL
-loadEvents(filter.value, searchInput.value);
-
-// FILTRO
+// ================== FILTER + SEARCH ==================
 filter.addEventListener("change", () => {
   loadEvents(filter.value, searchInput.value);
 });
 
-// BUSCA
 searchInput.addEventListener("input", () => {
   loadEvents(filter.value, searchInput.value);
 });
@@ -263,78 +203,13 @@ searchInput.addEventListener("input", () => {
 addEventBtn.onclick = () => {
   editingId = null;
   modal.classList.remove("hidden");
-
-  setTimeout(() => {
-    initMap();
-    map.invalidateSize();
-  }, 200);
 };
 
 closeBtn.onclick = () => modal.classList.add("hidden");
 
-// ================== SAVE ==================
-
-saveBtn.onclick = async () => {
-  let location = document.getElementById("location").value.trim();
-
-  const newEvent = {
-    title: document.getElementById("title").value.trim(),
-    date: document.getElementById("date").value,
-    location,
-    description: document.getElementById("description").value.trim(),
-    category: document.getElementById("category").value,
-    banner: document.getElementById("banner").value.trim(),
-  };
-
-  if (!newEvent.title || !newEvent.date || !newEvent.location) {
-    showToast("Preencha os campos ⚠️");
-    return;
-  }
-
-  if (editingId) {
-    await updateEvent(editingId, newEvent); // ✏️ UPDATE
-    editingId = null;
-    showToast("Evento atualizado 🚀");
-  } else {
-    await createEvent(newEvent); // ➕ CREATE
-    showToast("Evento criado 🚀");
-  }
-
-  modal.classList.add("hidden");
-
-  await loadEvents(filter.value, searchInput.value);
-};
 // ================== ABOUT ==================
-aboutBtn.addEventListener("click", () => {
-  aboutModal.classList.remove("hidden");
-});
-
-closeAbout.addEventListener("click", () => {
-  aboutModal.classList.add("hidden");
-});
-
-aboutModal.addEventListener("click", (e) => {
-  if (e.target === aboutModal) {
-    aboutModal.classList.add("hidden");
-  }
-});
-
-document.addEventListener("keydown", (e) => {
-  if (e.key === "Escape") {
-    aboutModal.classList.add("hidden");
-  }
-});
-
-// ================== TOAST ==================
-function showToast(msg) {
-  const toast = document.getElementById("toast");
-  toast.innerText = msg;
-  toast.classList.remove("hidden");
-
-  setTimeout(() => {
-    toast.classList.add("hidden");
-  }, 3000);
-}
+aboutBtn.onclick = () => aboutModal.classList.remove("hidden");
+closeAbout.onclick = () => aboutModal.classList.add("hidden");
 
 // ================== LOGOUT ==================
 logoutBtn.onclick = () => {
@@ -342,17 +217,5 @@ logoutBtn.onclick = () => {
   window.location.href = "index.html";
 };
 
-function getCategoryColor(category) {
-  switch (category) {
-    case "Festa":
-      return "bg-pink-500";
-    case "Show":
-      return "bg-purple-500";
-    case "Esportivo":
-      return "bg-green-500";
-    case "Tecnologia":
-      return "bg-indigo-500";
-    default:
-      return "bg-gray-500";
-  }
-}
+// INIT
+loadEvents(filter.value, searchInput.value);
